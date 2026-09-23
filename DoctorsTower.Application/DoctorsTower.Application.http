@@ -1,0 +1,6 @@
+@DoctorsTower.Application_HostAddress = http://localhost:5215
+
+GET {{DoctorsTower.Application_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
