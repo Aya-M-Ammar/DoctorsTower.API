@@ -8,6 +8,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DoctorsTower.Domain\DoctorsTower.Domain.csproj" />
+    <ProjectReference Include="..\DoctorsTower.infrastructure\DoctorsTower.infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="16.2.0" />
+    <PackageReference Include="MediatR" Version="14.2.0" />
   </ItemGroup>
 
 </Project>
