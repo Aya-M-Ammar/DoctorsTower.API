@@ -5,6 +5,7 @@ using DoctorsTower.Application.Feature.Command.ScheduleFeature.DeleteSchedule;
 using DoctorsTower.Application.Feature.Command.ScheduleFeature.UpdateSchedule;
 using DoctorsTower.Application.Feature.Query.ScheduleQuery.GetAll;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DoctorsTower.API.Controllers
@@ -33,6 +34,7 @@ namespace DoctorsTower.API.Controllers
 
         // POST: api/Schedule
         [HttpPost]
+        [Authorize(Roles = "Doctor")]
         public async Task<ActionResult<int>> AddSchedule(
             CreateScheduleDTO schedule)
         {
@@ -44,6 +46,7 @@ namespace DoctorsTower.API.Controllers
 
         // PUT: api/Schedule/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "Doctor")]
         public async Task<ActionResult<bool>> UpdateSchedule(
             int id,
             CreateScheduleDTO schedule)
@@ -61,6 +64,7 @@ namespace DoctorsTower.API.Controllers
 
         // DELETE: api/Schedule/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Doctor")]
         public async Task<ActionResult<bool>> DeleteSchedule(int id)
         {
             var result = await _mediator.Send(

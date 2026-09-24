@@ -1,19 +1,16 @@
 ﻿using DoctorsTower.Domain.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace DoctorsTower.Infrastructure.Persistence
 {
-    public class DoctorsTowerDbContext : DbContext
+    public class DoctorsTowerDbContext : IdentityDbContext<ApplicationUser>
     {
-        public DoctorsTowerDbContext(DbContextOptions<DoctorsTowerDbContext> options)
+        public DoctorsTowerDbContext(
+            DbContextOptions<DoctorsTowerDbContext> options)
             : base(options)
         {
         }
-
-        public DbSet<Doctor> Doctors { get; set; }
-        public DbSet<Patient> Patients { get; set; }
-        public DbSet<Schedule> Schedules { get; set; }
-        public DbSet<Appointment> Appointments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -22,5 +19,10 @@ namespace DoctorsTower.Infrastructure.Persistence
             modelBuilder.ApplyConfigurationsFromAssembly(
                 typeof(DoctorsTowerDbContext).Assembly);
         }
+
+        public DbSet<Doctor> Doctors { get; set; }
+        public DbSet<Patient> Patients { get; set; }
+        public DbSet<Schedule> Schedules { get; set; }
+        public DbSet<Appointment> Appointments { get; set; }
     }
 }

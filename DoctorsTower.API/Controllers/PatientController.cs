@@ -6,6 +6,7 @@ using DoctorsTower.Application.Feature.Command.PatientFeature.UpdatePatient;
 using DoctorsTower.Application.Feature.Query.PatientQuery.GetAll;
 using DoctorsTower.Application.Feature.Query.PatientQuery.GetById;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -47,6 +48,7 @@ namespace DoctorsTower.API.Controllers
 
         // POST: api/Patient
         [HttpPost]
+        [Authorize(Roles = "Patient")]
         public async Task<ActionResult<int>> AddPatient(
             CreatePatientDTO patient)
         {
@@ -58,6 +60,7 @@ namespace DoctorsTower.API.Controllers
 
         // PUT: api/Patient/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "Patient")]
         public async Task<ActionResult<bool>> UpdatePatient(
             int id,
             CreatePatientDTO patient)
@@ -75,6 +78,7 @@ namespace DoctorsTower.API.Controllers
 
         // DELETE: api/Patient/5
         [HttpDelete("{id}")]
+
         public async Task<ActionResult<bool>> DeletePatient(int id)
         {
             var result = await _mediator.Send(
