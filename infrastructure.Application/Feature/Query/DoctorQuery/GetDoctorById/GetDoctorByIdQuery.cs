@@ -6,7 +6,7 @@ using System.Text;
 
 namespace DoctorsTower.Application.Feature.Query.DoctorQuery.GetDoctorById
 {
-    public class GetDoctorByIdQuery : IRequest<DoctorDTO>
+    public class GetDoctorByIdQuery : IRequest<DoctorDTO?>
     {
         public int Id { get; set; }
 

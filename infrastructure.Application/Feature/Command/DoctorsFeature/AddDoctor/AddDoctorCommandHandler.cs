@@ -1,10 +1,9 @@
-﻿
-using AutoMapper;
+﻿using AutoMapper;
 using DoctorsTower.Application.DTOs;
+using DoctorsTower.Domain.Entities;
 using DoctorsTower.infrastructure.Contract;
 using MediatR;
 using Doctoree = DoctorsTower.Domain.Entities.Doctor;
-
 namespace DoctorsTower.Application.Feature.Command.Doctor.AddDoctor
 {
     public class AddDoctorCommandHandler
@@ -25,16 +24,26 @@ namespace DoctorsTower.Application.Feature.Command.Doctor.AddDoctor
             AddDoctorCommand request,
             CancellationToken cancellationToken)
         {
+            var doctorRepository =
+                _unitOfWork.GetRepository<Doctoree>();
+
+            // Business Rule:
+            // Phone must be unique
+            var existingDoctor = await doctorRepository.GetAllAsync(
+                x => x.Phone == request.Doctor.Phone);
+
+            if (existingDoctor.Any())
+            {
+                throw new Exception("A doctor with this phone number already exists.");
+            }
+
             var doctor = _mapper.Map<Doctoree>(request.Doctor);
 
-            await _unitOfWork
-                .GetRepository<Doctoree>()
-                .AddAsync(doctor);
+            await doctorRepository.AddAsync(doctor);
 
-            await _unitOfWork.SaveChangesAsync();
+            return await _unitOfWork.SaveChangesAsync();
 
-            return doctor.Id;
+          
         }
     }
-
 }

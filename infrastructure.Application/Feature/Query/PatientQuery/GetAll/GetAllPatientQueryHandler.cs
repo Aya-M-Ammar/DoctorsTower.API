@@ -6,12 +6,13 @@ using DoctorsTower.infrastructure.Contract;
 using MediatR;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 
 namespace DoctorsTower.Application.Feature.Query.PatientQuery.GetAll
 {
     public class GetAllPatientQueryHandler
-        : IRequestHandler<GetAllPatientQuery, IEnumerable<PatientDTO>>
+        : IRequestHandler<GetAllPatientQuery, IEnumerable<PatientDTO>?>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -31,7 +32,7 @@ namespace DoctorsTower.Application.Feature.Query.PatientQuery.GetAll
             var patients = await _unitOfWork
                 .GetRepository<Patient>()
                 .GetAllAsync();
-
+            if (!patients.Any()) return [];
             var result = _mapper.Map<IEnumerable<PatientDTO>>(patients);
 
             return result;

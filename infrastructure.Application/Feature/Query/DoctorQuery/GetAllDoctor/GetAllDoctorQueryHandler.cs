@@ -10,7 +10,7 @@ using System.Text;
 namespace DoctorsTower.Application.Feature.Query.DoctorQuery.GetAllDoctor
 {
     public class GetAllDoctorQueryHandler
-       : IRequestHandler<GetAllDoctorQuery, IEnumerable<DoctorDTO>>
+       : IRequestHandler<GetAllDoctorQuery, IEnumerable<DoctorDTO>?>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -31,6 +31,7 @@ namespace DoctorsTower.Application.Feature.Query.DoctorQuery.GetAllDoctor
                 .GetRepository<Doctor>()
                 .GetAllAsync();
 
+            if (!doctors.Any()) return [];
             var result = _mapper.Map<IEnumerable<DoctorDTO>>(doctors);
 
             return result;

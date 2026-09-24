@@ -8,9 +8,9 @@ namespace DoctorsTower.Application.Feature.Command.Doctor.AddDoctor
 {
     public class AddDoctorCommand : IRequest<int>
     {
-        public DoctorDTO Doctor { get; set; }
+        public CreateDoctorDTO Doctor { get; set; }
 
-        public AddDoctorCommand(DoctorDTO doctor)
+        public AddDoctorCommand(CreateDoctorDTO doctor)
         {
             Doctor = doctor;
         }

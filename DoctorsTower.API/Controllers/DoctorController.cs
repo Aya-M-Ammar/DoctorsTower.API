@@ -1,4 +1,5 @@
-﻿using DoctorsTower.Application.DTOs;
+﻿using DoctorsTower.API.Filters;
+using DoctorsTower.Application.DTOs;
 using DoctorsTower.Application.Feature.Command.Doctor.AddDoctor;
 using DoctorsTower.Application.Feature.Command.Doctors.UpdateDoctor;
 using DoctorsTower.Application.Feature.Command.DoctorsFeature.DeleteDoctors;
@@ -23,7 +24,8 @@ namespace DoctorsTower.API.Controllers
 
             // GET: api/Doctor
             [HttpGet]
-            public async Task<ActionResult<IEnumerable<DoctorDTO>>> GetAllDoctors()
+            [Cached(60)]
+        public async Task<ActionResult<IEnumerable<DoctorDTO>>> GetAllDoctors()
             {
                 var result = await _mediator.Send(
                     new GetAllDoctorQuery());
@@ -47,7 +49,7 @@ namespace DoctorsTower.API.Controllers
             // POST: api/Doctor
             [HttpPost]
             public async Task<ActionResult<int>> AddDoctor(
-                DoctorDTO doctor)
+                CreateDoctorDTO doctor)
             {
                 var result = await _mediator.Send(
                     new AddDoctorCommand(doctor));
@@ -57,12 +59,12 @@ namespace DoctorsTower.API.Controllers
 
             // PUT: api/Doctor/5
             [HttpPut("{id}")]
-            public async Task<ActionResult<bool>> UpdateDoctor(
-                int id,
-                DoctorDTO doctor)
+            public async Task<ActionResult<bool>> UpdateDoctor(int id,
+
+                CreateDoctorDTO doctor)
             {
           
-            var result =await _mediator.Send(new UpdateDoctorCommand(doctor, id));
+            var result =await _mediator.Send(new UpdateDoctorCommand(doctor,id));
 
                 if (!result)
                     return NotFound();

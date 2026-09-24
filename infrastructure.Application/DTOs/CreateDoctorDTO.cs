@@ -2,19 +2,18 @@
 
 namespace DoctorsTower.Application.DTOs
 {
-    public class PatientDTO
+    public class CreateDoctorDTO
     {
-        public int Id { get; set; }
-
         [Required]
         [StringLength(100, MinimumLength = 3)]
         public string FullName { get; set; } = null!;
 
         [Required]
-        [Phone]
-        public string Phone { get; set; } = null!;
+        [StringLength(100, MinimumLength = 2)]
+        public string Specialization { get; set; } = null!;
 
         [Required]
-        public DateTime DateOfBirth { get; set; }
+        [Phone]
+        public string Phone { get; set; } = null!;
     }
 }

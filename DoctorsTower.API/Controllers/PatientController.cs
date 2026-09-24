@@ -60,12 +60,12 @@ namespace DoctorsTower.API.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<bool>> UpdatePatient(
             int id,
-            PatientDTO patient)
+            CreatePatientDTO patient)
         {
-            patient.Id = id;
+           
 
             var result = await _mediator.Send(
-                new UpdatePatientCommand(patient));
+                new UpdatePatientCommand(patient,id));
 
             if (!result)
                 return NotFound();

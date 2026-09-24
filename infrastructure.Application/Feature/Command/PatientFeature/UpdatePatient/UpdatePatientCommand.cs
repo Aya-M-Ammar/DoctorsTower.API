@@ -8,11 +8,13 @@ namespace DoctorsTower.Application.Feature.Command.PatientFeature.UpdatePatient
 {
     public class UpdatePatientCommand : IRequest<bool>
     {
-        public PatientDTO Patient { get; set; }
+        public CreatePatientDTO Patient { get; set; }
+        public int Id { get; set; }
 
-        public UpdatePatientCommand(PatientDTO patient)
+        public UpdatePatientCommand(CreatePatientDTO patient,int id)
         {
             Patient = patient;
+            Id = id;
         }
     }
 }

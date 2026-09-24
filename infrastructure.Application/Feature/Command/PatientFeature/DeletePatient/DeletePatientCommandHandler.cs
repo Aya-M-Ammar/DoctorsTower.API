@@ -1,19 +1,17 @@
-﻿
+﻿using DoctorsTower.Application.Feature.Command.PatientFeature.DeletePatient;
 using DoctorsTower.Domain.Entities;
 using DoctorsTower.infrastructure.Contract;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace DoctorsTower.Application.Feature.Command.PatientFeature.DeletePatient
 {
     public class DeletePatientCommandHandler
-          : IRequestHandler<DeletePatientCommand, bool>
+        : IRequestHandler<DeletePatientCommand, bool>
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        public DeletePatientCommandHandler(IUnitOfWork unitOfWork)
+        public DeletePatientCommandHandler(
+            IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
@@ -22,16 +20,32 @@ namespace DoctorsTower.Application.Feature.Command.PatientFeature.DeletePatient
             DeletePatientCommand request,
             CancellationToken cancellationToken)
         {
-            var patient = await _unitOfWork
-                .GetRepository<Patient>()
+            var patientRepository =
+                _unitOfWork.GetRepository<Patient>();
+
+            // Rule 1:
+            // Patient must exist
+            var patient = await patientRepository
                 .GetByIdAsync(request.Id);
 
             if (patient == null)
                 return false;
 
-            _unitOfWork
-                .GetRepository<Patient>()
-                .Delete(patient);
+            // Rule 2:
+            // Patient cannot be deleted
+            // if he has appointments
+            var appointments = await _unitOfWork
+                .GetRepository<DoctorsTower.Domain.Entities.Appointment>()
+                .GetAllAsync(
+                    x => x.PatientId == request.Id);
+
+            if (appointments.Any())
+            {
+                throw new Exception(
+                    "Cannot delete patient because he has appointments.");
+            }
+
+            patientRepository.Delete(patient);
 
             await _unitOfWork.SaveChangesAsync();
 

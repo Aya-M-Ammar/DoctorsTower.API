@@ -10,7 +10,7 @@ using System.Text;
 namespace DoctorsTower.Application.Feature.Query.PatientQuery.GetById
 {
     public class GetScheduleByIdQueryHandler
-       : IRequestHandler<GetPatientByIdQuery, PatientDTO>
+       : IRequestHandler<GetPatientByIdQuery, PatientDTO?>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;

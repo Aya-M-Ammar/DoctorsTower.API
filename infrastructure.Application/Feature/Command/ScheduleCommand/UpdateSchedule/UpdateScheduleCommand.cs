@@ -1,5 +1,5 @@
 ﻿using DoctorsTower.Application.DTOs;
-using DoctorsTower.Application.DTOs.DoctorsTower.Application.DTOs;
+
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -9,10 +9,12 @@ namespace DoctorsTower.Application.Feature.Command.ScheduleFeature.UpdateSchedul
 {
     public class UpdateScheduleCommand : IRequest<bool>
     {
-        public ScheduleDTO Schedule { get; set; }
+        public CreateScheduleDTO Schedule { get; set; }
+        public int Id { get; set; }
 
-        public UpdateScheduleCommand(ScheduleDTO schedule)
+        public UpdateScheduleCommand(CreateScheduleDTO schedule,int id)
         {
+            Id = id;
             Schedule = schedule;
         }
     }

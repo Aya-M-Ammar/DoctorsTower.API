@@ -1,9 +1,12 @@
 
+using DoctorsTower.Application.Caching;
+using DoctorsTower.Application.Contracts;
 using DoctorsTower.Application.Feature.Query.DoctorQuery.GetAllDoctor;
 using DoctorsTower.Application.ImplementContact;
 using DoctorsTower.Application.Mapping;
 using DoctorsTower.infrastructure.Contract;
 using DoctorsTower.Infrastructure.Persistence;
+using DoctorsTower.Infrastructure.Services.Cache;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 
@@ -28,7 +31,11 @@ builder.Services.AddAutoMapper(cfg =>
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(GetAllDoctorQuery).Assembly));
 
-
+builder.Services.AddMemoryCache();
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<ICacheService, MemoryCacheService>();
+builder.Services.AddScoped<CachedFilter>();
+builder.Services.AddScoped<ICacheService, MemoryCacheService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

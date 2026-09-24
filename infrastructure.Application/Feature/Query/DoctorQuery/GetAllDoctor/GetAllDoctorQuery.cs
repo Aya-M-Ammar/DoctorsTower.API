@@ -6,7 +6,7 @@ using System.Text;
 
 namespace DoctorsTower.Application.Feature.Query.DoctorQuery.GetAllDoctor
 {
-    public class GetAllDoctorQuery : IRequest<IEnumerable<DoctorDTO>>
+    public class GetAllDoctorQuery : IRequest<IEnumerable<DoctorDTO>?>
     {
     }
 }

@@ -12,7 +12,7 @@ namespace DoctorsTower.Application.Feature.Query.AppointmentFeature.GetAll
     public class GetAllAppointmentQueryHandler
         : IRequestHandler<
             GetAllAppointmentQuery,
-            IEnumerable<AppointmentDTO>>
+            IEnumerable<AppointmentDTO>?>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -32,7 +32,7 @@ namespace DoctorsTower.Application.Feature.Query.AppointmentFeature.GetAll
             var appointments = await _unitOfWork
                 .GetRepository<Appointment>()
                 .GetAllAsync();
-
+            if (!appointments.Any()) return [];
             var result =
                 _mapper.Map<IEnumerable<AppointmentDTO>>(appointments);
 

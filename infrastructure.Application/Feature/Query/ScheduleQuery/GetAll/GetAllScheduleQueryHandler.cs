@@ -1,7 +1,6 @@
 ﻿
 using AutoMapper;
 using DoctorsTower.Application.DTOs;
-using DoctorsTower.Application.DTOs.DoctorsTower.Application.DTOs;
 using DoctorsTower.Application.Feature.Query.ScheduleQuery.GetAll;
 using DoctorsTower.Domain.Entities;
 using DoctorsTower.infrastructure.Contract;
@@ -13,7 +12,7 @@ using System.Text;
 namespace DoctorsTower.Application.Feature.Query.ScheduleQuery.GetAll
 {
     public class GetAllScheduleQueryHandler
-       : IRequestHandler<GetAllScheduleQuery, IEnumerable<ScheduleDTO>>
+       : IRequestHandler<GetAllScheduleQuery, IEnumerable<ScheduleDTO>?>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -34,6 +33,7 @@ namespace DoctorsTower.Application.Feature.Query.ScheduleQuery.GetAll
                 .GetRepository<Schedule>()
                 .GetAllAsync();
 
+            if (!schedules.Any()) return [];
             var result = _mapper.Map<IEnumerable<ScheduleDTO>>(schedules);
 
             return result;

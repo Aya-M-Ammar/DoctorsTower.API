@@ -2,10 +2,8 @@
 
 namespace DoctorsTower.Application.DTOs
 {
-    public class ScheduleDTO
+    public class CreateScheduleDTO
     {
-        public int Id { get; set; }
-
         [Required]
         [Range(1, int.MaxValue)]
         public int DoctorId { get; set; }

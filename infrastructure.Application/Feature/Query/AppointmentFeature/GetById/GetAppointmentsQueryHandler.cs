@@ -10,7 +10,7 @@ using System.Text;
 namespace DoctorsTower.Application.Feature.Query.AppointmentFeature.GetById
 {
     public class GetAppointmentsQueryHandler
-    : IRequestHandler<GetAppointmentsQuery, IEnumerable<AppointmentDTO>>
+    : IRequestHandler<GetAppointmentsQuery, IEnumerable<AppointmentDTO>?>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -44,6 +44,7 @@ namespace DoctorsTower.Application.Feature.Query.AppointmentFeature.GetById
                     .GetRepository<Appointment>()
                     .GetAllAsync();
             }
+            if (!appointments.Any()) return [];
 
             return _mapper.Map<IEnumerable<AppointmentDTO>>(appointments);
         }

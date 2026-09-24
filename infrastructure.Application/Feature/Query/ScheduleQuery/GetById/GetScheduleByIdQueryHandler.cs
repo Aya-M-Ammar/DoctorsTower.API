@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using DoctorsTower.Application.DTOs;
-using DoctorsTower.Application.DTOs.DoctorsTower.Application.DTOs;
 using DoctorsTower.Domain.Entities;
 using DoctorsTower.infrastructure.Contract;
 using MediatR;
@@ -11,7 +10,7 @@ using System.Text;
 namespace DoctorsTower.Application.Feature.Query.ScheduleQuery.GetById
 {
     public class GetScheduleByIdQueryHandler
-          : IRequestHandler<GetScheduleByIdQuery, ScheduleDTO>
+          : IRequestHandler<GetScheduleByIdQuery, ScheduleDTO?>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;

@@ -9,13 +9,15 @@ namespace DoctorsTower.Application.Feature.Command.Doctors.UpdateDoctor
 {
     public class UpdateDoctorCommand : IRequest<bool>
     {
-        public DoctorDTO Doctor { get; set; }
+        public CreateDoctorDTO Doctor { get; set; }
         public int Id { get; set; }
 
-        public UpdateDoctorCommand(DoctorDTO doctor,int id)
+
+        public UpdateDoctorCommand(CreateDoctorDTO doctor,int id)
         {
-            Doctor = doctor;
             Id = id;
+            Doctor = doctor;
+
         }
     }
 }

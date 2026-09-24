@@ -1,10 +1,10 @@
 ﻿using DoctorsTower.Application.DTOs;
 using DoctorsTower.Application.Feature.Command.Appointment.AddAppointment;
-
+using DoctorsTower.Application.Feature.Command.Appointment.CompleteAppointment;
 using DoctorsTower.Application.Feature.Command.Appointment.UpdateAppointment;
 using DoctorsTower.Application.Feature.Command.AppointmentFeature.DeleteAppointment;
 using DoctorsTower.Application.Feature.Query.AppointmentFeature.GetById;
-
+using DoctorsTower.Application.Feature.Query.AppointmentQuery.GetAvailableSlots;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -56,10 +56,10 @@ namespace DoctorsTower.API.Controllers
             int id,
             AppointmentDTO appointment)
         {
-            appointment.Id = id;
+            
 
             var result = await _mediator.Send(
-                new UpdateAppointmentCommand(appointment));
+                new UpdateAppointmentCommand(appointment,id));
 
             if (!result)
                 return NotFound();
@@ -89,6 +89,33 @@ namespace DoctorsTower.API.Controllers
 
             if (!result)
                 return NotFound();
+
+            return Ok(result);
+        }
+
+        [HttpPut("{id}/complete")]
+        public async Task<ActionResult<bool>> CompleteAppointment(int id)
+        {
+            var result = await _mediator.Send(
+                new CompleteAppointmentCommand(id));
+
+            if (!result)
+                return NotFound();
+
+            return Ok(result);
+        }
+
+
+        [HttpGet("available")]
+        public async Task<ActionResult<IEnumerable<AvailableSlotDTO>>>
+        GetAvailableSlots(
+            int doctorId,
+            DateTime date)
+        {
+            var result = await _mediator.Send(
+                new GetAvailableSlotsQuery(
+                    doctorId,
+                    date));
 
             return Ok(result);
         }

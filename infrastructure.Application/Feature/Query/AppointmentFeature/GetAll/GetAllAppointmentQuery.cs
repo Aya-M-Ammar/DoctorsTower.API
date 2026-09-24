@@ -8,7 +8,7 @@ using System.Text;
 namespace DoctorsTower.Application.Feature.Query.AppointmentFeature.GetAll
 {
     public class GetAllAppointmentQuery
-        : IRequest<IEnumerable<AppointmentDTO>>
+        : IRequest<IEnumerable<AppointmentDTO>?>
     {
     }
 }

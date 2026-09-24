@@ -1,25 +1,24 @@
-﻿using DoctorsTower.Application.Feature.Command.AppointmentFeature.DeleteAppointment;
-using DoctorsTower.Domain.Entities;
+﻿using DoctorsTower.Domain.Entities;
 using DoctorsTower.Domain.Entities.Enums;
 
 using DoctorsTower.infrastructure.Contract;
 using MediatR;
 
-namespace DoctorsTower.Application.Feature.Command.AppointmentFeature.DeleteAppointment
+namespace DoctorsTower.Application.Feature.Command.Appointment.CompleteAppointment
 {
-    public class CancelAppointmentCommandHandler
-        : IRequestHandler<CancelAppointmentCommand, bool>
+    public class CompleteAppointmentCommandHandler
+        : IRequestHandler<CompleteAppointmentCommand, bool>
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        public CancelAppointmentCommandHandler(
+        public CompleteAppointmentCommandHandler(
             IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
         public async Task<bool> Handle(
-            CancelAppointmentCommand request,
+            CompleteAppointmentCommand request,
             CancellationToken cancellationToken)
         {
             var appointmentRepository =
@@ -35,26 +34,25 @@ namespace DoctorsTower.Application.Feature.Command.AppointmentFeature.DeleteAppo
                 return false;
 
             // Rule 2:
-            // Cannot cancel an already cancelled appointment
-            if (appointment.Status ==
-                AppointmentStatus.Cancelled)
+            // Only Booked appointment can be completed
+            if (appointment.Status !=
+                AppointmentStatus.Booked)
             {
                 throw new Exception(
-                    "Appointment is already cancelled.");
+                    "Only booked appointments can be completed.");
             }
 
             // Rule 3:
-            // Cannot cancel a completed appointment
-            if (appointment.Status ==
-                AppointmentStatus.Completed)
+            // Appointment date must have arrived
+            if (appointment.AppointmentDate >
+                DateTime.Now)
             {
                 throw new Exception(
-                    "Completed appointment cannot be cancelled.");
+                    "Future appointment cannot be completed.");
             }
 
-            // Change status
             appointment.Status =
-                AppointmentStatus.Cancelled;
+                AppointmentStatus.Completed;
 
             appointmentRepository.Update(appointment);
 

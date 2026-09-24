@@ -1,5 +1,5 @@
-﻿using DoctorsTower.Application.DTOs;
-using DoctorsTower.Application.DTOs.DoctorsTower.Application.DTOs;
+﻿using DoctorsTower.API.Filters;
+using DoctorsTower.Application.DTOs;
 using DoctorsTower.Application.Feature.Command.ScheduleFeature.AddSchedule;
 using DoctorsTower.Application.Feature.Command.ScheduleFeature.DeleteSchedule;
 using DoctorsTower.Application.Feature.Command.ScheduleFeature.UpdateSchedule;
@@ -22,6 +22,7 @@ namespace DoctorsTower.API.Controllers
 
         // GET: api/Schedule
         [HttpGet]
+        [Cached(60)]
         public async Task<ActionResult<IEnumerable<ScheduleDTO>>> GetAllSchedules()
         {
             var result = await _mediator.Send(
@@ -33,7 +34,7 @@ namespace DoctorsTower.API.Controllers
         // POST: api/Schedule
         [HttpPost]
         public async Task<ActionResult<int>> AddSchedule(
-            ScheduleDTO schedule)
+            CreateScheduleDTO schedule)
         {
             var result = await _mediator.Send(
                 new AddScheduleCommand(schedule));
@@ -45,12 +46,12 @@ namespace DoctorsTower.API.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<bool>> UpdateSchedule(
             int id,
-            ScheduleDTO schedule)
+            CreateScheduleDTO schedule)
         {
-            schedule.Id = id;
+            
 
             var result = await _mediator.Send(
-                new UpdateScheduleCommand(schedule));
+                new UpdateScheduleCommand(schedule,id));
 
             if (!result)
                 return NotFound();

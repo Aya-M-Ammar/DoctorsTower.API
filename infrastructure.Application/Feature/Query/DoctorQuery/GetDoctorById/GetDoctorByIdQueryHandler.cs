@@ -6,12 +6,13 @@ using DoctorsTower.infrastructure.Contract;
 using MediatR;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 
 namespace DoctorsTower.Application.Feature.Query.DoctorQuery.GetDoctorById
 {
     public class GetDoctorByIdQueryHandler
-          : IRequestHandler<GetDoctorByIdQuery, DoctorDTO>
+          : IRequestHandler<GetDoctorByIdQuery, DoctorDTO?>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -24,13 +25,14 @@ namespace DoctorsTower.Application.Feature.Query.DoctorQuery.GetDoctorById
             _mapper = mapper;
         }
 
-        public async Task<DoctorDTO> Handle(
+        public async Task<DoctorDTO?> Handle(
             GetDoctorByIdQuery request,
             CancellationToken cancellationToken)
         {
             var doctor = await _unitOfWork
                 .GetRepository<Doctor>()
                 .GetByIdAsync(request.Id);
+            if(doctor is null) return null;
 
             var result = _mapper.Map<DoctorDTO>(doctor);
 

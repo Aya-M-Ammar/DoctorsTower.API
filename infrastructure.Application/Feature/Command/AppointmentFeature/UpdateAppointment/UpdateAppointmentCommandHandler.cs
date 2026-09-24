@@ -32,7 +32,7 @@ namespace DoctorsTower.Application.Feature.Command.Appointment.UpdateAppointment
         {
             var appointment = await _unitOfWork
                 .GetRepository<Appointmentt>()
-                .GetByIdAsync(request.Appointment.Id);
+                .GetByIdAsync(request.Id);
 
             if (appointment == null)
                 return false;
