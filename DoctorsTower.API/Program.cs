@@ -8,6 +8,7 @@ using DoctorsTower.Domain.Entities;
 using DoctorsTower.infrastructure.Contract;
 using DoctorsTower.Infrastructure.CreateToken;
 using DoctorsTower.Infrastructure.Persistence;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,7 @@ builder.Services.AddControllers();
 
 // Swagger / OpenAPI
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddScoped<IBackgroundJobService, BackgroundJobService>();
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -51,6 +53,14 @@ builder.Services.AddDbContext<DoctorsTowerDbContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection")
     ));
 
+//hangfie
+builder.Services.AddHangfire(config =>
+{
+    config.UseSqlServerStorage(
+        builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+
+builder.Services.AddHangfireServer();
 // Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<DoctorsTowerDbContext>()
@@ -122,7 +132,12 @@ builder.Services.AddScoped<CachedFilter>();
 
 
 var app = builder.Build();
-
+//hangfire
+app.UseHangfireDashboard();
+RecurringJob.AddOrUpdate<IBackgroundJobService>(
+    "delete-expired-appointments",
+    service => service.DeleteExpiredAppointments(),
+    Cron.Daily);
 // Swagger
 if (app.Environment.IsDevelopment())
 {

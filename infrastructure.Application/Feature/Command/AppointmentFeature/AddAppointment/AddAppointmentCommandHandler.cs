@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using DoctorsTower.Application.ImplementContact;
 using DoctorsTower.Domain.Entities;
 using DoctorsTower.Domain.Entities.Enums;
 
@@ -12,13 +13,18 @@ namespace DoctorsTower.Application.Feature.Command.Appointment.AddAppointment
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IBackgroundJobService _backgroundJobService;
+
+      
 
         public AddAppointmentCommandHandler(
             IUnitOfWork unitOfWork,
-            IMapper mapper)
+            IMapper mapper, IBackgroundJobService backgroundJobService)
+       
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _backgroundJobService = backgroundJobService;
         }
 
         public async Task<int> Handle(
@@ -180,6 +186,7 @@ namespace DoctorsTower.Application.Feature.Command.Appointment.AddAppointment
                 .AddAsync(appointment);
 
             await _unitOfWork.SaveChangesAsync();
+            _backgroundJobService.EnqueueDoctorNotification(appointment.Id);
 
             return appointment.Id;
         }
