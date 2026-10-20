@@ -2,6 +2,7 @@
 using DoctorsTower.Domain.Entities;
 using DoctorsTower.infrastructure.Contract;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace DoctorsTower.Application.Feature.Command.ScheduleFeature.DeleteSchedule
 { 
@@ -9,11 +10,13 @@ namespace DoctorsTower.Application.Feature.Command.ScheduleFeature.DeleteSchedul
         : IRequestHandler<DeleteScheduleCommand, bool>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<DeleteScheduleCommandHandler> _logger;
 
         public DeleteScheduleCommandHandler(
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,ILogger<DeleteScheduleCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
+            _logger = logger;
         }
 
         public async Task<bool> Handle(
@@ -40,21 +43,22 @@ namespace DoctorsTower.Application.Feature.Command.ScheduleFeature.DeleteSchedul
                 .GetRepository<DoctorsTower.Domain.Entities.Appointment>()
                 .GetAllAsync(
                     x => x.DoctorId == schedule.DoctorId &&
-                         x.AppointmentDate.DayOfWeek == schedule.Day &&
-                         x.AppointmentDate.TimeOfDay >= schedule.StartTime &&
-                         x.AppointmentDate.TimeOfDay < schedule.EndTime);
+                         x.AppointmentDay.DayOfWeek == schedule.Day &&
+                         x.AppointmentTime>= schedule.StartTime &&
+                         x.AppointmentTime< schedule.EndTime);
 
             if (appointments.Any())
             {
-                throw new Exception(
-                    "Cannot delete schedule because it has appointments.");
+              _logger.LogError(
+                    $"Cannot delete schedule {request.Id} because it has appointments");
+                return false;
             }
 
             scheduleRepository.Delete(schedule);
 
-            await _unitOfWork.SaveChangesAsync();
+           return  await _unitOfWork.SaveChangesAsync()>0;
 
-            return true;
+           
         }
     }
 }

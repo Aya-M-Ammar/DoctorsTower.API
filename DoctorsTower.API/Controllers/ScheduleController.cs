@@ -34,19 +34,22 @@ namespace DoctorsTower.API.Controllers
 
         // POST: api/Schedule
         [HttpPost]
-        [Authorize(Roles = "Doctor")]
+      //  [Authorize(Roles = "Doctor")]
         public async Task<ActionResult<int>> AddSchedule(
-            CreateScheduleDTO schedule)
+          [FromBody]  CreateScheduleDTO schedule)
         {
             var result = await _mediator.Send(
                 new AddScheduleCommand(schedule));
+            if (result > 0)
+                return Ok("Add Schedule Successfuly");
 
-            return Ok(result);
+            return Ok("Failed in Added");
+        
         }
 
         // PUT: api/Schedule/5
         [HttpPut("{id}")]
-        [Authorize(Roles = "Doctor")]
+    //    [Authorize(Roles = "Doctor")]
         public async Task<ActionResult<bool>> UpdateSchedule(
             int id,
             CreateScheduleDTO schedule)

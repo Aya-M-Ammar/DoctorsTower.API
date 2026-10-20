@@ -13,8 +13,9 @@ namespace DoctorsTower.Domain.Entities
 
         public int PatientId { get; set; }
 
-        public DateTime AppointmentDate { get; set; }
+        public DateOnly AppointmentDay { get; set; }
 
+        public TimeOnly AppointmentTime { get; set; }
         public AppointmentStatus Status { get; set; }
 
         public DateTime CreatedAt { get; set; }

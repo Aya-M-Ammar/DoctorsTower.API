@@ -2,6 +2,7 @@
 using DoctorsTower.Domain.Entities;
 using DoctorsTower.infrastructure.Contract;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace DoctorsTower.Application.Feature.Command.PatientFeature.DeletePatient
 {
@@ -9,11 +10,13 @@ namespace DoctorsTower.Application.Feature.Command.PatientFeature.DeletePatient
         : IRequestHandler<DeletePatientCommand, bool>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<DeletePatientCommandHandler> _logger;
 
         public DeletePatientCommandHandler(
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork, ILogger<DeletePatientCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
+            _logger = logger;
         }
 
         public async Task<bool> Handle(
@@ -41,15 +44,15 @@ namespace DoctorsTower.Application.Feature.Command.PatientFeature.DeletePatient
 
             if (appointments.Any())
             {
-                throw new Exception(
-                    "Cannot delete patient because he has appointments.");
-            }
+                _logger.LogError($"Cannot delete patient {patient.Id} because he has appointments.");
+                return false;
+            } 
 
             patientRepository.Delete(patient);
 
-            await _unitOfWork.SaveChangesAsync();
+        return     await _unitOfWork.SaveChangesAsync()>0;
 
-            return true;
+           
         }
     }
 }

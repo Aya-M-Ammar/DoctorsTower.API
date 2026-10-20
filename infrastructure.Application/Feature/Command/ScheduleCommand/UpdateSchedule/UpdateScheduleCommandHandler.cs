@@ -2,7 +2,9 @@
 using DoctorsTower.Application.Feature.Command.ScheduleFeature.UpdateSchedule;
 using DoctorsTower.Domain.Entities;
 using DoctorsTower.infrastructure.Contract;
+using Hangfire.Logging;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace DoctorsTower.Application.Feature.Command.ScheduleFeature.UpdateSchedule
 {
@@ -11,13 +13,15 @@ namespace DoctorsTower.Application.Feature.Command.ScheduleFeature.UpdateSchedul
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ILogger<UpdateScheduleCommandHandler> _logger;
 
         public UpdateScheduleCommandHandler(
             IUnitOfWork unitOfWork,
-            IMapper mapper)
+            IMapper mapper,ILogger<UpdateScheduleCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<bool> Handle(
@@ -42,15 +46,20 @@ namespace DoctorsTower.Application.Feature.Command.ScheduleFeature.UpdateSchedul
                 .GetByIdAsync(request.Schedule.DoctorId);
 
             if (doctor == null)
-                throw new Exception("Doctor not found.");
+            {
+                _logger.LogWarning(
+                    $"Doctor with ID {request.Schedule.DoctorId} not found."  );
+                return false;
+            }
 
             // Rule 3:
             // Start time must be before end time
             if (request.Schedule.StartTime >=
                 request.Schedule.EndTime)
             {
-                throw new Exception(
-                    "Start time must be before end time.");
+                _logger.LogError(
+                    $"Invalid schedule times: StartTime {request.Schedule.StartTime} is not before EndTime {request.Schedule.EndTime}.");
+                return false;   
             }
 
             // Rule 4:
@@ -67,17 +76,18 @@ namespace DoctorsTower.Application.Feature.Command.ScheduleFeature.UpdateSchedul
 
             if (existingSchedules.Any())
             {
-                throw new Exception(
+                _logger.LogError(
                     "This schedule overlaps with an existing schedule.");
+                return false;
             }
 
             _mapper.Map(request.Schedule, schedule);
 
             scheduleRepository.Update(schedule);
 
-            await _unitOfWork.SaveChangesAsync();
+            return await _unitOfWork.SaveChangesAsync()>0;
 
-            return true;
+            
         }
     }
 }

@@ -3,6 +3,7 @@ using DoctorsTower.Application.Feature.Command.PatientFeature.UpdatePatient;
 using DoctorsTower.Domain.Entities;
 using DoctorsTower.infrastructure.Contract;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace DoctorsTower.Application.Feature.Command.PatientFeature.UpdatePatient
 {
@@ -11,13 +12,16 @@ namespace DoctorsTower.Application.Feature.Command.PatientFeature.UpdatePatient
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly    ILogger<UpdatePatientCommandHandler> _logger;
+
 
         public UpdatePatientCommandHandler(
             IUnitOfWork unitOfWork,
-            IMapper mapper)
+            IMapper mapper,ILogger<UpdatePatientCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<bool> Handle(
@@ -44,8 +48,8 @@ namespace DoctorsTower.Application.Feature.Command.PatientFeature.UpdatePatient
 
             if (existingPatient.Any())
             {
-                throw new Exception(
-                    "A patient with this phone number already exists.");
+                _logger.LogError($"A patient with phone number {request.Patient.Phone} already exists.");
+                return false;
             }
 
             // Rule 3:
@@ -53,17 +57,17 @@ namespace DoctorsTower.Application.Feature.Command.PatientFeature.UpdatePatient
             if (request.Patient.DateOfBirth.Date >
                 DateTime.UtcNow.Date)
             {
-                throw new Exception(
-                    "Date of birth cannot be in the future.");
+               _logger.LogError($"Date of birth {request.Patient.DateOfBirth} cannot be in the future.");
+                return false;
             }
 
             _mapper.Map(request.Patient, patient);
 
             patientRepository.Update(patient);
 
-            await _unitOfWork.SaveChangesAsync();
+           return  await _unitOfWork.SaveChangesAsync()>0;
 
-            return true;
+           
         }
     }
 }

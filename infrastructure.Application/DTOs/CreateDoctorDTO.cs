@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using DoctorsTower.Domain.Entities.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace DoctorsTower.Application.DTOs
 {
@@ -9,8 +10,8 @@ namespace DoctorsTower.Application.DTOs
         public string FullName { get; set; } = null!;
 
         [Required]
-        [StringLength(100, MinimumLength = 2)]
-        public string Specialization { get; set; } = null!;
+       
+        public DoctorSpecialization Specialization { get; set; }
 
         [Required]
         [Phone]

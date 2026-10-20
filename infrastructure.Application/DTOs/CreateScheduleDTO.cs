@@ -12,10 +12,10 @@ namespace DoctorsTower.Application.DTOs
         public DayOfWeek Day { get; set; }
 
         [Required]
-        public TimeSpan StartTime { get; set; }
+        public TimeOnly StartTime { get; set; }
 
         [Required]
-        public TimeSpan EndTime { get; set; }
+        public TimeOnly EndTime { get; set; }
 
         [Required]
         [Range(1, 60)]

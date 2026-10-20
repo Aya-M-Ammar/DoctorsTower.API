@@ -7,11 +7,11 @@ namespace DoctorsTower.Application.Feature.Query.AppointmentQuery.GetAvailableSl
         : IRequest<IEnumerable<AvailableSlotDTO>?>
     {
         public int DoctorId { get; set; }
-        public DateTime Date { get; set; }
+        public DateOnly Date { get; set; }
 
         public GetAvailableSlotsQuery(
             int doctorId,
-            DateTime date)
+            DateOnly date)
         {
             DoctorId = doctorId;
             Date = date;

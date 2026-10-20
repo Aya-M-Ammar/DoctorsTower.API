@@ -49,19 +49,21 @@ namespace DoctorsTower.API.Controllers
 
             // POST: api/Doctor
             [HttpPost]
-        [Authorize(Roles = "Doctor")]
+        //[Authorize(Roles = "Doctor")]
         public async Task<ActionResult<int>> AddDoctor(
                 CreateDoctorDTO doctor)
             {
                 var result = await _mediator.Send(
                     new AddDoctorCommand(doctor));
+            if(result > 0)
+            return Ok($"Doctor added successfully ");
 
-                return Ok(result);
-            }
+            return BadRequest("Failed to add doctor.");
+        }
 
             // PUT: api/Doctor/5
             [HttpPut("{id}")]
-        [Authorize(Roles = "Doctor")]
+      //  [Authorize(Roles = "Doctor")]
         public async Task<ActionResult<bool>> UpdateDoctor(int id,
 
                 CreateDoctorDTO doctor)

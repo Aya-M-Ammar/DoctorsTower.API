@@ -44,8 +44,8 @@ namespace DoctorsTower.Application.Feature.Command.Appointment.CompleteAppointme
 
             // Rule 3:
             // Appointment date must have arrived
-            if (appointment.AppointmentDate >
-                DateTime.Now)
+            if (appointment.AppointmentDay >
+                DateOnly.FromDateTime(DateTime.Now))
             {
                 throw new Exception(
                     "Future appointment cannot be completed.");

@@ -13,10 +13,11 @@ namespace DoctorsTower.Infrastructure.Persistence.Configurations
             builder.Property(d => d.FullName)
                    .IsRequired()
                    .HasMaxLength(100);
-
             builder.Property(d => d.Specialization)
-                   .IsRequired()
-                   .HasMaxLength(100);
+                  .IsRequired()
+                  .HasConversion<int>();
+
+           
 
             builder.Property(d => d.Phone)
                    .IsRequired()

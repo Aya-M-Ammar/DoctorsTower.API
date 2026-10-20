@@ -10,7 +10,10 @@ namespace DoctorsTower.Infrastructure.Persistence.Configurations
         {
             builder.HasKey(a => a.Id);
 
-            builder.Property(a => a.AppointmentDate)
+            builder.Property(a => a.AppointmentDay)
+                   .IsRequired();
+
+            builder.Property(a => a.AppointmentTime)
                    .IsRequired();
 
             builder.Property(a => a.Status)
