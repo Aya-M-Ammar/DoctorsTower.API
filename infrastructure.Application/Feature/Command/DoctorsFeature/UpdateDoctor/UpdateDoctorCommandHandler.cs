@@ -4,27 +4,25 @@ using DoctorsTower.Application.Feature.Command.Doctors.UpdateDoctor;
 using DoctorsTower.Domain.Entities;
 using DoctorsTower.infrastructure.Contract;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Doctoree = DoctorsTower.Domain.Entities.Doctor;
 
 namespace DoctorsTower.Application.Feature.Command.Doctors.UpdateDoctor
 {
-    public class UpdateDoctorCommandHandler
-        : IRequestHandler<UpdateDoctorCommand, bool>
+    public class UpdateDoctorCommandHandler : IRequestHandler<UpdateDoctorCommand, bool>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ILogger<UpdateDoctorCommandHandler> _logger;
 
-        public UpdateDoctorCommandHandler(
-            IUnitOfWork unitOfWork,
-            IMapper mapper)
+        public UpdateDoctorCommandHandler(  IUnitOfWork unitOfWork, IMapper mapper,ILogger<UpdateDoctorCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _logger = logger;
         }
 
-        public async Task<bool> Handle(
-            UpdateDoctorCommand request,
-            CancellationToken cancellationToken)
+        public async Task<bool> Handle(UpdateDoctorCommand request,CancellationToken cancellationToken)
         {
             var doctorRepository =
                 _unitOfWork.GetRepository<Doctoree>();
@@ -46,17 +44,17 @@ namespace DoctorsTower.Application.Feature.Command.Doctors.UpdateDoctor
 
             if (existingDoctor.Any())
             {
-                throw new Exception(
-                    "A doctor with this phone number already exists.");
+                _logger.LogError($"Phone number {request.Doctor.Phone} is already in use by another doctor.");
+                return false;   
             }
 
             _mapper.Map(request.Doctor, doctor);
 
             doctorRepository.Update(doctor);
 
-            await _unitOfWork.SaveChangesAsync();
+          return   await _unitOfWork.SaveChangesAsync()>0;
 
-            return true;
+            
         }
     }
 }

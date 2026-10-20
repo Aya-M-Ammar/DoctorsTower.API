@@ -4,23 +4,22 @@ using DoctorsTower.infrastructure.Contract;
 using MediatR;
 using Doctoree = DoctorsTower.Domain.Entities.Doctor;
 using Appointmentt = DoctorsTower.Domain.Entities.Appointment;
+using Microsoft.Extensions.Logging;
 namespace DoctorsTower.Application.Feature.Command.DoctorsFeature.DeleteDoctors
 {
 
-    public class DeleteDoctorCommandHandler
-        : IRequestHandler<DeleteDoctorCommand, bool>
+    public class DeleteDoctorCommandHandler : IRequestHandler<DeleteDoctorCommand, bool>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<DeleteDoctorCommandHandler> _logger;
 
-        public DeleteDoctorCommandHandler(
-            IUnitOfWork unitOfWork)
+        public DeleteDoctorCommandHandler(IUnitOfWork unitOfWork,ILogger<DeleteDoctorCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
+            _logger = logger;
         }
 
-        public async Task<bool> Handle(
-            DeleteDoctorCommand request,
-            CancellationToken cancellationToken)
+        public async Task<bool> Handle( DeleteDoctorCommand request, CancellationToken cancellationToken)
         {
             var doctorRepository =
                 _unitOfWork.GetRepository<Doctoree>();
@@ -38,11 +37,12 @@ namespace DoctorsTower.Application.Feature.Command.DoctorsFeature.DeleteDoctors
             var schedules = await _unitOfWork
                 .GetRepository<Schedule>()
                 .GetAllAsync(x => x.DoctorId == request.Id);
+           
 
             if (schedules.Any())
             {
-                throw new Exception(
-                    "Cannot delete doctor because he has schedules.");
+               _logger.LogError($"Cannot delete doctor with id {request.Id} because he has schedules.");
+                return false;
             }
 
             // Rule 3:
@@ -53,15 +53,15 @@ namespace DoctorsTower.Application.Feature.Command.DoctorsFeature.DeleteDoctors
 
             if (appointments.Any())
             {
-                throw new Exception(
-                    "Cannot delete doctor because he has appointments.");
+               _logger.LogError($"Cannot delete doctor with id {request.Id} because he has appointments.");
+                return false;
             }
 
-            doctorRepository.Delete(doctor);
+          doctorRepository.Delete(doctor);
 
-            await _unitOfWork.SaveChangesAsync();
+           return  await _unitOfWork.SaveChangesAsync()>0;
 
-            return true;
+           
         }
     }
 }

@@ -13,8 +13,8 @@ namespace DoctorsTower.infrastructure.Contract
         public void Delete(TEntity entity);
 
 
-        public Task<IEnumerable<TEntity>> GetAllAsync();
-        Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate);
+        public Task<IEnumerable<TEntity>?> GetAllAsync();
+        Task<IEnumerable<TEntity>?> GetAllAsync(Expression<Func<TEntity, bool>> predicate);
 
         public Task<TEntity?> GetByIdAsync(int id);
 

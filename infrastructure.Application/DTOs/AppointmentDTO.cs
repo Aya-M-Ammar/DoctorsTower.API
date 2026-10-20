@@ -17,7 +17,10 @@ namespace DoctorsTower.Application.DTOs
         public int PatientId { get; set; }
 
         [Required]
-        public DateTime AppointmentDate { get; set; }
+        public DateOnly AppointmentDay { get; set; }
+        [Required]
+        public TimeOnly AppointmentTime { get; set; }
+    
 
         [Required]
         public AppointmentStatus Status { get; set; }

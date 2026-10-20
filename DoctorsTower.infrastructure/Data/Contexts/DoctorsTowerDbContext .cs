@@ -1,4 +1,5 @@
 ﻿using DoctorsTower.Domain.Entities;
+using DoctorsTower.Infrastructure.Persistence.Configurations;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,9 +7,7 @@ namespace DoctorsTower.Infrastructure.Persistence
 {
     public class DoctorsTowerDbContext : IdentityDbContext<ApplicationUser>
     {
-        public DoctorsTowerDbContext(
-            DbContextOptions<DoctorsTowerDbContext> options)
-            : base(options)
+        public DoctorsTowerDbContext( DbContextOptions<DoctorsTowerDbContext> options): base(options)
         {
         }
 
@@ -17,7 +16,7 @@ namespace DoctorsTower.Infrastructure.Persistence
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.ApplyConfigurationsFromAssembly(
-                typeof(DoctorsTowerDbContext).Assembly);
+                typeof(DoctorConfiguration).Assembly);
         }
 
         public DbSet<Doctor> Doctors { get; set; }

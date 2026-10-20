@@ -1,4 +1,5 @@
-﻿using DoctorsTower.Application.DTOs;
+﻿
+using DoctorsTower.Application.DTOs;
 using DoctorsTower.Domain.Entities;
 using DoctorsTower.Domain.Entities.Enums;
 using DoctorsTower.infrastructure.Contract;
@@ -9,7 +10,7 @@ namespace DoctorsTower.Application.Feature.Query.AppointmentQuery.GetAvailableSl
     public class GetAvailableSlotsQueryHandler
         : IRequestHandler<
             GetAvailableSlotsQuery,
-            IEnumerable<AvailableSlotDTO>?>
+            IEnumerable<AvailableSlotDTO>>
     {
         private readonly IUnitOfWork _unitOfWork;
 
@@ -23,11 +24,7 @@ namespace DoctorsTower.Application.Feature.Query.AppointmentQuery.GetAvailableSl
             GetAvailableSlotsQuery request,
             CancellationToken cancellationToken)
         {
-            // ==========================================
-            // Rule 1:
-            // Doctor must exist
-            // ==========================================
-
+            // Rule 1: Doctor must exist
             var doctor = await _unitOfWork
                 .GetRepository<Doctor>()
                 .GetByIdAsync(request.DoctorId);
@@ -35,82 +32,65 @@ namespace DoctorsTower.Application.Feature.Query.AppointmentQuery.GetAvailableSl
             if (doctor == null)
                 throw new Exception("Doctor not found.");
 
-            // ==========================================
-            // Get doctor's schedule for this day
-            // ==========================================
-
+            // Rule 2: Get doctor's schedule for the selected day
             var schedules = await _unitOfWork
                 .GetRepository<Schedule>()
-                .GetAllAsync(
-                    x =>
-                        x.DoctorId == request.DoctorId &&
-                        x.Day == request.Date.DayOfWeek);
+                .GetAllAsync(x =>
+                    x.DoctorId == request.DoctorId &&
+                    x.Day == request.Date.DayOfWeek);
 
             if (!schedules.Any())
-            {
-                return [];
-            }
+                return Enumerable.Empty<AvailableSlotDTO>();
 
-            // ==========================================
-            // Get appointments for this doctor/date
-            // ==========================================
-
-            var dayStart = request.Date.Date;
-
-            var dayEnd = dayStart.AddDays(1);
-
+            // Rule 3: Get appointments for this doctor and date
             var appointments = await _unitOfWork
                 .GetRepository<Appointment>()
-                .GetAllAsync(
-                    x =>
-                        x.DoctorId == request.DoctorId &&
-                        x.AppointmentDate >= dayStart &&
-                        x.AppointmentDate < dayEnd &&
-                        x.Status != AppointmentStatus.Cancelled);
+                .GetAllAsync(x =>
+                    x.DoctorId == request.DoctorId &&
+                    x.AppointmentDay == request.Date &&
+                    x.Status != AppointmentStatus.Cancelled);
+
+            var bookedTimes = appointments
+                .Select(x => x.AppointmentTime)
+                .ToHashSet();
 
             var result = new List<AvailableSlotDTO>();
 
-            // ==========================================
-            // Generate slots
-            // ==========================================
-
-            foreach (var schedule in schedules)
+            // Rule 4: Generate available slots
+            foreach (var schedule in schedules.OrderBy(x => x.StartTime))
             {
-                var slotDuration =
-                    TimeSpan.FromMinutes(
-                        60.0 / schedule.AppointmentsPerHour);
+                if (schedule.AppointmentsPerHour <= 0)
+                    continue;
+
+                var slotDuration = TimeSpan.FromMinutes(
+                    60.0 / schedule.AppointmentsPerHour);
 
                 var currentTime = schedule.StartTime;
 
-                while (currentTime + slotDuration <= schedule.EndTime)
+                while (currentTime.Add(slotDuration) <= schedule.EndTime)
                 {
-                    var slotStart =
-                        request.Date.Date.Add(currentTime);
+                    // Skip past slots when the selected day is today
+                    if (request.Date == DateOnly.FromDateTime(DateTime.Today) &&
+                        currentTime <= TimeOnly.FromDateTime(DateTime.Now))
+                    {
+                        currentTime = currentTime.Add(slotDuration);
+                        continue;
+                    }
 
-                    var slotEnd =
-                        slotStart.Add(slotDuration);
-
-                    var bookedCount = appointments.Count(
-                        x =>
-                            x.AppointmentDate >= slotStart &&
-                            x.AppointmentDate < slotEnd);
-
-                    if (bookedCount == 0)
+                    // A slot is available if its start time is not booked
+                    if (!bookedTimes.Contains(currentTime))
                     {
                         result.Add(new AvailableSlotDTO
                         {
-                            StartTime = slotStart,
-                            EndTime = slotEnd
+                            StartTime = currentTime,
+                            EndTime = TimeOnly.FromTimeSpan(
+                                currentTime.ToTimeSpan().Add(slotDuration))
                         });
                     }
 
-                    currentTime += slotDuration;
+                    currentTime = currentTime.Add(slotDuration);
                 }
             }
-
-            // ==========================================
-            // Return available slots
-            // ==========================================
 
             return result;
         }

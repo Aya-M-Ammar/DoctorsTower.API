@@ -28,10 +28,10 @@ namespace DoctorsTower.Application.ImplementContact
         public void Delete(TEntity entity) => _context.Set<TEntity>().Remove(entity);
 
 
-        public async Task<IEnumerable<TEntity>> GetAllAsync() => await _context.Set<TEntity>().ToListAsync();
+        public async Task<IEnumerable<TEntity>?> GetAllAsync() => await _context.Set<TEntity>().ToListAsync();
 
-        public async Task<IEnumerable<TEntity>> GetAllAsync(
-    Expression<Func<TEntity, bool>> predicate)
+        public async Task<IEnumerable<TEntity>?> GetAllAsync(
+                                           Expression<Func<TEntity, bool>> predicate)
         {
             return await _context.Set<TEntity>()
                 .Where(predicate)

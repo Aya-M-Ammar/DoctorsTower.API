@@ -46,8 +46,9 @@ namespace DoctorsTower.API.Controllers
         {
             var result = await _mediator.Send(
                 new AddAppointmentCommand(appointment));
-
-            return Ok(result);
+            if (result > 0)
+                return Ok("Appointment Add Successfualy");
+            return Ok("Failed in Added Appointment");
         }
 
         // PUT: api/Appointment/1
@@ -110,7 +111,7 @@ namespace DoctorsTower.API.Controllers
         public async Task<ActionResult<IEnumerable<AvailableSlotDTO>>>
         GetAvailableSlots(
             int doctorId,
-            DateTime date)
+            DateOnly date)
         {
             var result = await _mediator.Send(
                 new GetAvailableSlotsQuery(

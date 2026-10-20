@@ -1,10 +1,10 @@
-﻿using AutoMapper;
-using DoctorsTower.Application.ImplementContact;
+﻿
+using AutoMapper;
 using DoctorsTower.Domain.Entities;
 using DoctorsTower.Domain.Entities.Enums;
-
 using DoctorsTower.infrastructure.Contract;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace DoctorsTower.Application.Feature.Command.Appointment.AddAppointment
 {
@@ -13,18 +13,16 @@ namespace DoctorsTower.Application.Feature.Command.Appointment.AddAppointment
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IBackgroundJobService _backgroundJobService;
-
-      
+        private readonly ILogger<AddAppointmentCommandHandler> _logger;
 
         public AddAppointmentCommandHandler(
             IUnitOfWork unitOfWork,
-            IMapper mapper, IBackgroundJobService backgroundJobService)
-       
+            IMapper mapper,
+            ILogger<AddAppointmentCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _backgroundJobService = backgroundJobService;
+            _logger = logger;
         }
 
         public async Task<int> Handle(
@@ -34,161 +32,147 @@ namespace DoctorsTower.Application.Feature.Command.Appointment.AddAppointment
             var appointmentRepository =
                 _unitOfWork.GetRepository<DoctorsTower.Domain.Entities.Appointment>();
 
-            // ==========================================
-            // Rule 1: Doctor must exist
-            // ==========================================
+            var doctorId = request.Appointment.DoctorId;
+            var patientId = request.Appointment.PatientId;
+            var appointmentDay = request.Appointment.AppointmentDay;
 
+            // Rule 1: Doctor must exist
             var doctor = await _unitOfWork
                 .GetRepository<DoctorsTower.Domain.Entities.Doctor>()
-                .GetByIdAsync(request.Appointment.DoctorId);
+                .GetByIdAsync(doctorId);
 
             if (doctor == null)
-                throw new Exception("Doctor not found.");
+            {
+                _logger.LogWarning(
+                    "Doctor with ID {DoctorId} was not found.",
+                    doctorId);
 
-            // ==========================================
+                return 0;
+            }
+
             // Rule 2: Patient must exist
-            // ==========================================
-
             var patient = await _unitOfWork
                 .GetRepository<Patient>()
-                .GetByIdAsync(request.Appointment.PatientId);
+                .GetByIdAsync(patientId);
 
             if (patient == null)
-                throw new Exception("Patient not found.");
-
-            // ==========================================
-            // Rule 3: Appointment cannot be in the past
-            // ==========================================
-
-            if (request.Appointment.AppointmentDate <= DateTime.Now)
             {
-                throw new Exception(
-                    "Appointment date must be in the future.");
+                _logger.LogWarning(
+                    "Patient with ID {PatientId} was not found.",
+                    patientId);
+
+                return 0;
             }
 
-            // ==========================================
-            // Rule 4:
-            // Doctor must have a schedule on this day
-            // ==========================================
+            // Rule 3: Appointment day cannot be in the past
+            if (appointmentDay < DateOnly.FromDateTime(DateTime.Today))
+            {
+                _logger.LogWarning(
+                    "Appointment day {AppointmentDay} is in the past.",
+                    appointmentDay);
 
-            var appointmentDate =
-                request.Appointment.AppointmentDate;
+                return 0;
+            }
 
+            // Rule 4: Get doctor's schedules for the selected day
             var schedules = await _unitOfWork
                 .GetRepository<Schedule>()
-                .GetAllAsync(
-                    x =>
-                        x.DoctorId ==
-                        request.Appointment.DoctorId
-                        &&
-                        x.Day ==
-                        appointmentDate.DayOfWeek);
+                .GetAllAsync(x =>
+                    x.DoctorId == doctorId &&
+                    x.Day == appointmentDay.DayOfWeek);
 
-            if (!schedules.Any())
+            var orderedSchedules = schedules
+                .OrderBy(x => x.StartTime)
+                .ToList();
+
+            if (!orderedSchedules.Any())
             {
-                throw new Exception(
-                    "Doctor does not have a schedule on this day.");
+                _logger.LogWarning(
+                    "No schedule found for Doctor {DoctorId} on {Day}.",
+                    doctorId,
+                    appointmentDay.DayOfWeek);
+
+                return 0;
             }
 
-            // ==========================================
-            // Rule 5:
-            // Appointment time must be inside schedule
-            // ==========================================
+            // Rule 5: Get existing non-cancelled appointments
+            var existingAppointments =
+                await appointmentRepository.GetAllAsync(x =>
+                    x.DoctorId == doctorId &&
+                    x.AppointmentDay == appointmentDay &&
+                    x.Status != AppointmentStatus.Cancelled);
 
-            var schedule = schedules.FirstOrDefault(
-                x =>
-                    appointmentDate.TimeOfDay >= x.StartTime
-                    &&
-                    appointmentDate.TimeOfDay < x.EndTime);
+            var bookedTimes = existingAppointments
+                .Select(x => x.AppointmentTime)
+                .ToHashSet();
 
-            if (schedule == null)
+            // Rule 6: Find the first available time slot
+            TimeOnly? availableTime = null;
+
+            foreach (var schedule in orderedSchedules)
             {
-                throw new Exception(
-                    "Appointment time is outside doctor's working hours.");
+                if (schedule.AppointmentsPerHour <= 0)
+                {
+                    _logger.LogWarning(
+                        "Invalid appointment capacity for Schedule {ScheduleId}.",
+                        schedule.Id);
+
+                    continue;
+                }
+
+                double slotMinutes =
+                    60.0 / schedule.AppointmentsPerHour;
+
+                var currentTime = schedule.StartTime;
+
+                while (currentTime.AddMinutes(slotMinutes)
+                    <= schedule.EndTime)
+                {
+                    // Skip past times when booking for today
+                    if (appointmentDay ==
+                            DateOnly.FromDateTime(DateTime.Today) &&
+                        currentTime <= TimeOnly.FromDateTime(DateTime.Now))
+                    {
+                        currentTime = currentTime.AddMinutes(slotMinutes);
+                        continue;
+                    }
+
+                    if (!bookedTimes.Contains(currentTime))
+                    {
+                        availableTime = currentTime;
+                        break;
+                    }
+
+                    currentTime = currentTime.AddMinutes(slotMinutes);
+                }
+
+                if (availableTime.HasValue)
+                    break;
             }
 
-            // ==========================================
-            // Rule 6:
-            // Same patient cannot book same slot twice
-            // ==========================================
-
-            var patientAlreadyBooked =
-                await appointmentRepository.GetAllAsync(
-                    x =>
-                        x.DoctorId ==
-                        request.Appointment.DoctorId
-                        &&
-                        x.PatientId ==
-                        request.Appointment.PatientId
-                        &&
-                        x.AppointmentDate ==
-                        appointmentDate
-                        &&
-                        x.Status !=
-                        AppointmentStatus.Cancelled);
-
-            if (patientAlreadyBooked.Any())
+            if (!availableTime.HasValue)
             {
-                throw new Exception(
-                    "Patient already booked this appointment.");
+                _logger.LogWarning(
+                    "No available appointment slots for Doctor {DoctorId} on {Day}.",
+                    doctorId,
+                    appointmentDay);
+
+                return 0;
             }
 
-            // ==========================================
-            // Rule 7:
-            // Check appointment capacity
-            // ==========================================
-
-            var hourStart = new DateTime(
-      appointmentDate.Year,
-      appointmentDate.Month,
-      appointmentDate.Day,
-      appointmentDate.Hour,
-      0,
-      0);
-
-            var hourEnd = hourStart.AddHours(1);
-
-            var bookedAppointments =
-                await appointmentRepository.GetAllAsync(
-                    x =>
-                        x.DoctorId ==
-                        request.Appointment.DoctorId
-                        &&
-                        x.AppointmentDate >= hourStart
-                        &&
-                        x.AppointmentDate < hourEnd
-                        &&
-                        x.Status != AppointmentStatus.Cancelled);
-
-            if (bookedAppointments.Count() >=
-                schedule.AppointmentsPerHour)
-            {
-                throw new Exception(
-                    "This hour is fully booked.");
-            }
-
-            // ==========================================
-            // Create Appointment
-            // ==========================================
-
+            // Rule 7: Create the appointment
             var appointment =
-                _mapper.Map<DoctorsTower.Domain.Entities.Appointment>(
-                    request.Appointment);
+                _mapper.Map<DoctorsTower.Domain.Entities.Appointment>(request.Appointment);
 
-            // Always start as Booked
-            appointment.Status =
-                AppointmentStatus.Booked;
+            appointment.AppointmentTime = availableTime.Value;
+            appointment.Status = AppointmentStatus.Booked;
+            appointment.CreatedAt = DateTime.UtcNow;
 
-            appointment.CreatedAt =
-                DateTime.UtcNow;
+            await appointmentRepository.AddAsync(appointment);
 
-            await appointmentRepository
-                .AddAsync(appointment);
+           return  await _unitOfWork.SaveChangesAsync();
 
-            await _unitOfWork.SaveChangesAsync();
-            _backgroundJobService.EnqueueDoctorNotification(appointment.Id);
-
-            return appointment.Id;
+        
         }
     }
 }

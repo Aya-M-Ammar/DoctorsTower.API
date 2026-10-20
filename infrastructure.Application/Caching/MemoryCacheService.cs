@@ -19,15 +19,9 @@ namespace DoctorsTower.Application.Caching
             return Task.FromResult(value);
         }
 
-        public Task SetAsync<T>(
-            string key,
-            T value,
-            TimeSpan expiration)
+        public Task SetAsync<T>( string key, T value, TimeSpan expiration)
         {
-            _memoryCache.Set(
-                key,
-                value,
-                expiration);
+            _memoryCache.Set( key,value, expiration);
 
             return Task.CompletedTask;
         }

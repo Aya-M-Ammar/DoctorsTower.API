@@ -133,11 +133,11 @@ builder.Services.AddScoped<CachedFilter>();
 
 var app = builder.Build();
 //hangfire
-app.UseHangfireDashboard();
-RecurringJob.AddOrUpdate<IBackgroundJobService>(
-    "delete-expired-appointments",
-    service => service.DeleteExpiredAppointments(),
-    Cron.Daily);
+//app.UseHangfireDashboard();
+//RecurringJob.AddOrUpdate<IBackgroundJobService>(
+//    "delete-expired-appointments",
+//    service => service.DeleteExpiredAppointments(),
+//    Cron.Daily);
 // Swagger
 if (app.Environment.IsDevelopment())
 {
